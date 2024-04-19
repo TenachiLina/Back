@@ -31,21 +31,30 @@ app.get("/",(req, res) =>{
 
 app.post('/register',(req,res)=>{
 
-    const userName = req.body.username
+    /*const userName = req.body.userName
     const pwd = req.body.pwd
     const nom = req.body.nom
     const prenom = req.body.prenom
     const numTel = req.body.numTel
     const add = req.body.add
+    console.log(userName);*/
+    const { userName, pwd, nom, prenom, numTel, add } = req.body;
 
 
 
 
     db.query("INSERT INTO utilisateur(Nom, Prenom, NumTel,Addresse, TypeUtilisateur, UserName, Pwd) VALUES (?,?,?,?,'Client',?,?)",
         [nom,prenom,numTel,add,userName,pwd],
-        (err, result)=>{
-        console.log(err);
-    } )
+        (err, result) => {
+            if (err) {
+                console.error("Error inserting data:", err);
+                res.send(err);
+            } else {
+                console.log("Insert successful"+ userName);
+                console.log("Insert successful"+ pwd);
+                res.send("User registered");
+            }
+        } )
 })
 
 app.listen(3002,() =>{
