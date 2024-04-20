@@ -38,13 +38,13 @@ app.post('/register',(req,res)=>{
     const numTel = req.body.numTel
     const add = req.body.add
     console.log(userName);*/
-    const { userName, pwd, nom, prenom, numTel, add } = req.body;
+    const { userName, pwd, nom, prenom, numTel, add, gender } = req.body;
 
 
 
 
-    db.query("INSERT INTO utilisateur(Nom, Prenom, NumTel,Addresse, TypeUtilisateur, UserName, Pwd) VALUES (?,?,?,?,'Client',?,?)",
-        [nom,prenom,numTel,add,userName,pwd],
+    db.query("INSERT INTO utilisateur(Nom, Prenom,Genre,NumTel,Addresse, TypeUtilisateur, UserName, Pwd) VALUES (?,?,?,?,?,'Client',?,?)",
+        [nom,prenom,gender,numTel,add,userName,pwd],
         (err, result) => {
             if (err) {
                 console.error("Error inserting data:", err);
