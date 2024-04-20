@@ -50,8 +50,6 @@ app.post('/register',(req,res)=>{
                 console.error("Error inserting data:", err);
                 res.send(err);
             } else {
-                console.log("Insert successful"+ userName);
-                console.log("Insert successful"+ pwd);
                 res.send("User registered");
             }
         } )
