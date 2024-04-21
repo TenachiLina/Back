@@ -21,23 +21,8 @@ db.connect((err) => {
 });
 
 
-app.get("/",(req, res) =>{
-   const sqlInsert = "INSERT INTO produits(NomProd, PrixUnitaire, TauxTVA, Stock, `Quantité d'alerte`) VALUES ('Paracétamol',25,0.75,900,10);"
-   /* db.query(sqlInsert,(err,result)=>{
-        res.send("Hi I'm Lily548")
-
-    });*/
-});
-
 app.post('/register',(req,res)=>{
 
-    /*const userName = req.body.userName
-    const pwd = req.body.pwd
-    const nom = req.body.nom
-    const prenom = req.body.prenom
-    const numTel = req.body.numTel
-    const add = req.body.add
-    console.log(userName);*/
     const { userName, pwd, nom, prenom, numTel, add, gender } = req.body;
 
 
@@ -54,6 +39,30 @@ app.post('/register',(req,res)=>{
             }
         } )
 })
+
+app.post('/LogIn',(req,res)=>{
+
+
+    const { userNameLogIn, pwdLogIn } = req.body;
+
+    db.query(
+        "SELECT * FROM utilisateur WHERE UserName = ? AND Pwd = ?",
+        [userNameLogIn,pwdLogIn],
+        (err, result) => {
+            if (err) {
+                console.error("Error :", err);
+                res.send(err);
+            } else {
+                if(result){
+                    res.send("User Found : " + result);
+                }else{
+                    res.send("Wrong Username or Password!");
+                }
+
+                }
+        } )
+})
+
 
 app.listen(3002,() =>{
     console.log("running on port 3002");
