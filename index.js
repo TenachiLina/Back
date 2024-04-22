@@ -53,8 +53,8 @@ app.post('/LogIn',(req,res)=>{
                 console.error("Error :", err);
                 res.send(err);
             } else {
-                if(result){
-                    res.send("User Found : " + result);
+                if(result.length > 0){
+                    res.send(result);
                 }else{
                     res.send("Wrong Username or Password!");
                 }
