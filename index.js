@@ -24,10 +24,6 @@ db.connect((err) => {
 app.post('/register',(req,res)=>{
 
     const { userName, pwd, nom, prenom, numTel, add, gender } = req.body;
-
-
-
-
     db.query("INSERT INTO utilisateur(Nom, Prenom,Genre,NumTel,Addresse, TypeUtilisateur, UserName, Pwd) VALUES (?,?,?,?,?,'Client',?,?)",
         [nom,prenom,gender,numTel,add,userName,pwd],
         (err, result) => {
@@ -39,6 +35,34 @@ app.post('/register',(req,res)=>{
             }
         } )
 })
+
+
+app.post('/addseller', (req, res) => {
+
+    const { nom, prenom, genre, numTel, add, userName, pwd } = req.body;
+    db.query("INSERT INTO utilisateur(Nom, Prenom, Genre, NumTel, Addresse, TypeUtilisateur, UserName, Pwd) VALUES (?, ?, ?, ?, ?, 'Vendeur', ?, ?)",
+        [nom, prenom, genre, numTel, add, userName, pwd],
+        (err, result) => {
+            if (err) {
+                console.error("Error adding seller:", err);
+                res.send(err);
+            } else {
+                console.log("Seller added successfully");
+                res.send("Vendeur ajouté avec succès");
+            }
+        })
+});
+app.get('/getUsers', (req, res) => {
+    db.query('SELECT Nom, Prenom, Genre, NumTel, Addresse, UserName, Pwd FROM utilisateur', (err, result) => {
+        if (err) {
+            console.error("Error fetching users:", err);
+            res.status(500).send("Internal server error");
+        } else {
+            res.status(200).json(result);
+        }
+    });
+});
+
 
 app.post('/LogIn',(req,res)=>{
 
