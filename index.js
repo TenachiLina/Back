@@ -8,7 +8,7 @@ app.use(cors());
 const db = mysql.createConnection({
    host: 'localhost',
    user: 'root',
-    password: 'amanilakehal20056',
+    password: '',
     database: 'pharm',
 
 })
@@ -91,7 +91,7 @@ app.put('/update-product', (req, res) => {
     const { id, productName, unitPrice, vatRate, stock, alertQuantity } = req.body;
 
     db.query(
-        'UPDATE produit SET productName = ?, unitPrice = ?, vatRate = ?, stock = ?, alertQuantity = ? WHERE id = ?',
+        'UPDATE produits SET NomProd = ?, PrixUnitaire = ?, TauxTVA = ?, stock = ?, QuantiteDalerte = ? WHERE IdProd = ?',
         [productName, unitPrice, vatRate, stock, alertQuantity, id],
         (err, result) => {
             if (err) {
@@ -108,7 +108,7 @@ app.delete('/products/:id', (req, res) => {
     const { id } = req.params;
 
     // Delete product from the database
-    db.query('DELETE FROM products WHERE id = ?', [id], (err, result) => {
+    db.query('DELETE FROM produits WHERE IdProd = ?', [id], (err, result) => {
         if (err) {
             console.error(err);
             res.status(500).send('Error deleting product');
