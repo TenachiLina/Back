@@ -87,6 +87,68 @@ app.post('/LogIn',(req,res)=>{
         } )
 })
 
+app.put('/update-product', (req, res) => {
+    const { id, productName, unitPrice, vatRate, stock, alertQuantity } = req.body;
+
+    db.query(
+        'UPDATE produit SET productName = ?, unitPrice = ?, vatRate = ?, stock = ?, alertQuantity = ? WHERE id = ?',
+        [productName, unitPrice, vatRate, stock, alertQuantity, id],
+        (err, result) => {
+            if (err) {
+                console.error('Error updating product:', err);
+                res.send(err);
+            } else {
+                res.send('Product updated successfully');
+
+            }
+        }
+    );
+});
+app.delete('/products/:id', (req, res) => {
+    const { id } = req.params;
+
+    // Delete product from the database
+    db.query('DELETE FROM products WHERE id = ?', [id], (err, result) => {
+        if (err) {
+            console.error(err);
+            res.status(500).send('Error deleting product');
+        } else {
+            console.log(`Deleted product with ID ${id}`);
+            res.sendStatus(204);
+        }
+    });
+});
+app.put('/update-vendor', (req, res) => {
+    const { id, carteIdentite, nom, prenom, genre, numTel, addresse, typeUtilisateur, userName, pwd } = req.body;
+
+    db.query(
+        'UPDATE utilisateur SET CarteIdentite = ?, Nom = ?, Prenom = ?, Genre = ?, NumTel = ?, Addresse = ?, TypeUtilisateur = ?, UserName = ?, Pwd = ? WHERE utilisateur.IdUtilisateur = ?\n',
+        [carteIdentite, nom, prenom, genre, numTel, addresse, typeUtilisateur, userName, pwd, id],
+        (err, result) => {
+            if (err) {
+                console.error('Error updating vendor:', err);
+                res.send(err);
+            } else {
+                res.send('Vendor updated successfully');
+            }
+        }
+    );
+});
+app.delete('/vendors/:id', (req, res) => {
+    const { id } = req.params;
+
+    // Delete vendor from the database
+    db.query('DELETE FROM utilisateur WHERE IdUtilisateur = ?', [id], (err, result) => {
+        if (err) {
+            console.error(err);
+            res.status(500).send('Error deleting vendor');
+        } else {
+            console.log(`Deleted vendor with ID ${id}`);
+            res.sendStatus(204);
+        }
+    });
+});
+
 
 app.listen(3002,() =>{
     console.log("running on port 3002");
