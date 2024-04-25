@@ -94,6 +94,7 @@ app.put('/update-product', (req, res) => {
     const { IdProd, NomProd, PrixUnitaire, TauxTVA, Stock, Quantete,Description,DatePeremption } = req.body;
 
     db.query(
+
         'UPDATE produits SET NomProd = ?, PrixUnitaire = ?, TauxTVA = ?, Stock = ?, Quantete = ? ,Description = ? , DatePeremption = ? WHERE IdProd = ?',
         [IdProd,NomProd, PrixUnitaire, TauxTVA, Stock, Quantete, Description,DatePeremption],
         (err, result) => {
@@ -218,12 +219,32 @@ app.get('/monthly-revenue', (req, res) => {
     );
 });
 
+app.get('/getProducts', (req, res) => {
+    db.query('SELECT NomProd, PrixUnitaire, TauxTVA, Stock, QuantiteA FROM pharm.produits', (err, result) => {
+        if (err) {
+            console.error("Error fetching products:", err);
+            res.status(500).send("Internal server error");
+        } else {
+            // Check if the result has at least one row
+            if (result.length > 0) {
+                console.log("First product:", result[0]); // Log the first row
+                res.status(200).json(result);
+            } else {
+                console.log("No products found.");
+                res.status(404).send("No products found.");
+            }
+        }
+    });
+});
+
+
 app.post('/addProduct', (req, res) => {
 
     const { NomProd, PrixUnitaire, TauxTVA, Stock, Quantite,Description,DatePeremption } = req.body;
     const query = 'INSERT INTO produits (NomProd, PrixUnitaire, TauxTVA, Stock, Quantite,Description,DatePeremption) VALUES (?, ?, ?, ?, ?,?,?)';
-    db.query(query, [NomProd, PrixUnitaire, TauxTVA, Stock, Quantite,Description,DatePeremption], (err, result) => {
-        if (err) {
+    db.query(query, [NomProd, PrixUnitaire, TauxTVA, Stock, QuantiteA ,Description,DatePeremption], (err, result) => {
+
+      if (err) {
             console.error(err);
             res.status(500).send('Erreur lors de l\'insertion du produit.');
             return;
@@ -232,8 +253,13 @@ app.post('/addProduct', (req, res) => {
     });
 
 });
+
+
+
+
+
 app.get('/getProducts', (req, res) => {
-    db.query('SELECT  NomProd, PrixUnitaire, TauxTVA, Stock, Quantite, Photo ,Description,DatePeremption FROM produits', (err, result) => {
+    db.query('SELECT  NomProd, PrixUnitaire, TauxTVA, Stock, QuantiteA , Photo ,Description,DatePeremption FROM produits', (err, result) => {
         if (err) {
             console.error("Error fetching users:", err);
             res.status(500).send("Internal server error");
@@ -242,6 +268,7 @@ app.get('/getProducts', (req, res) => {
         }
     });
 });
+
 app.delete('/deleteVendor/:id', (req, res) => {
     const vendorId = req.params.id;
 
