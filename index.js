@@ -91,7 +91,7 @@ app.put('/update-product', (req, res) => {
     const { id, productName, unitPrice, vatRate, stock, alertQuantity } = req.body;
 
     db.query(
-        'UPDATE produits SET NomProd = ?, PrixUnitaire = ?, TauxTVA = ?, stock = ?, QuantiteDalerte = ? WHERE IdProd = ?',
+        'UPDATE produits SET productName = ?, unitPrice = ?, vatRate = ?, stock = ?, alertQuantity = ? WHERE id = ?',
         [productName, unitPrice, vatRate, stock, alertQuantity, id],
         (err, result) => {
             if (err) {
@@ -104,20 +104,7 @@ app.put('/update-product', (req, res) => {
         }
     );
 });
-app.delete('/products/:id', (req, res) => {
-    const { id } = req.params;
 
-    // Delete product from the database
-    db.query('DELETE FROM produits WHERE IdProd = ?', [id], (err, result) => {
-        if (err) {
-            console.error(err);
-            res.status(500).send('Error deleting product');
-        } else {
-            console.log(`Deleted product with ID ${id}`);
-            res.sendStatus(204);
-        }
-    });
-});
 app.put('/update-vendor', (req, res) => {
     const { id, carteIdentite, nom, prenom, genre, numTel, addresse, typeUtilisateur, userName, pwd } = req.body;
 
@@ -134,6 +121,19 @@ app.put('/update-vendor', (req, res) => {
         }
     );
 });
+app.delete('/deleteProduct/:id', (req, res) => {
+    const id = req.params.id;
+    const query = 'DELETE FROM produits WHERE IdProd = ?';
+    db.query(query, [id], (err, result) => {
+        if (err) {
+            console.error(err);
+            res.status(500).send('Erreur lors de la suppression du produit.');
+            return;
+        }
+        res.status(200).send('Produit supprimé avec succès.');
+    });
+});
+
 app.delete('/vendors/:id', (req, res) => {
     const { id } = req.params;
 
@@ -149,6 +149,44 @@ app.delete('/vendors/:id', (req, res) => {
     });
 });
 
+app.post('/addProduct', (req, res) => {
+
+    const { NomProd, PrixUnitaire, TauxTVA, Stock, Quantite } = req.body;
+    const query = 'INSERT INTO produits (NomProd, PrixUnitaire, TauxTVA, Stock, Quantite) VALUES (?, ?, ?, ?, ?)';
+    db.query(query, [NomProd, PrixUnitaire, TauxTVA, Stock, Quantite], (err, result) => {
+        if (err) {
+            console.error(err);
+            res.status(500).send('Erreur lors de l\'insertion du produit.');
+            return;
+        }
+        res.status(201).send('Produit inséré avec succès.');
+    });
+
+});
+app.get('/getProducts', (req, res) => {
+    db.query('SELECT  NomProd, PrixUnitaire, TauxTVA, Stock, Quantite, Photo FROM produits', (err, result) => {
+        if (err) {
+            console.error("Error fetching users:", err);
+            res.status(500).send("Internal server error");
+        } else {
+            res.status(200).json(result);
+        }
+    });
+});
+app.delete('/deleteVendor/:id', (req, res) => {
+    const vendorId = req.params.id;
+
+    // Supprimer le vendeur de la base de données
+    db.query('DELETE FROM utilisateur WHERE IdUtilisateur = ?', [vendorId], (err, result) => {
+        if (err) {
+            console.error(err);
+            res.status(500).send('Erreur lors de la suppression du vendeur');
+        } else {
+            console.log(`Vendeur supprimé avec l'ID ${vendorId}`);
+            res.sendStatus(204);
+        }
+    });
+});
 
 app.listen(3002,() =>{
     console.log("running on port 3002");
