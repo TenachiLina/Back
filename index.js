@@ -2,6 +2,7 @@ const express = require('express')
 const app = express()
 const mysql = require('mysql')
 const cors = require('cors')
+const dbService = require('./dbService');
 
 app.use(express.json());
 app.use(cors());
@@ -88,11 +89,11 @@ app.post('/LogIn',(req,res)=>{
 })
 
 app.put('/update-product', (req, res) => {
-    const { id, productName, unitPrice, vatRate, stock, alertQuantity } = req.body;
+    const { IdProd, NomProd, PrixUnitaire, TauxTVA, Stock, Quantete,Descriptionn,DatePeremption } = req.body;
 
     db.query(
-        'UPDATE produits SET productName = ?, unitPrice = ?, vatRate = ?, stock = ?, alertQuantity = ? WHERE id = ?',
-        [productName, unitPrice, vatRate, stock, alertQuantity, id],
+        'UPDATE produits SET NomProd = ?, PrixUnitaire = ?, TauxTVA = ?, Stock = ?, Quantete = ? WHERE IdProd = ?',
+        [IdProd,NomProd, PrixUnitaire, TauxTVA, Stock, Quantete, Descriptionn,DatePeremption],
         (err, result) => {
             if (err) {
                 console.error('Error updating product:', err);
@@ -122,9 +123,13 @@ app.put('/update-vendor', (req, res) => {
     );
 });
 app.delete('/deleteProduct/:id', (req, res) => {
-    const id = req.params.id;
+    const IdProd = req.params.id;
+    if (!IdProd) {
+        res.status(400).send('ID du produit non fourni.');
+        return;
+    }
     const query = 'DELETE FROM produits WHERE IdProd = ?';
-    db.query(query, [id], (err, result) => {
+    db.query(query, [IdProd], (err, result) => {
         if (err) {
             console.error(err);
             res.status(500).send('Erreur lors de la suppression du produit.');
@@ -134,26 +139,24 @@ app.delete('/deleteProduct/:id', (req, res) => {
     });
 });
 
+
 app.delete('/vendors/:id', (req, res) => {
     const { id } = req.params;
+    const db = dbService.getd;
 
-    // Delete vendor from the database
-    db.query('DELETE FROM utilisateur WHERE IdUtilisateur = ?', [id], (err, result) => {
-        if (err) {
-            console.error(err);
-            res.status(500).send('Error deleting vendor');
-        } else {
-            console.log(`Deleted vendor with ID ${id}`);
-            res.sendStatus(204);
-        }
-    });
+    const result = db.deleteRowById(id);
+
+    result
+        .then(data => response.json({success : data}))
+        .catch(err => console.log(err));
+
 });
 
 app.post('/addProduct', (req, res) => {
 
-    const { NomProd, PrixUnitaire, TauxTVA, Stock, Quantite } = req.body;
-    const query = 'INSERT INTO produits (NomProd, PrixUnitaire, TauxTVA, Stock, Quantite) VALUES (?, ?, ?, ?, ?)';
-    db.query(query, [NomProd, PrixUnitaire, TauxTVA, Stock, Quantite], (err, result) => {
+    const { NomProd, PrixUnitaire, TauxTVA, Stock, Quantite,Descriptionn,DatePeremption } = req.body;
+    const query = 'INSERT INTO produits (NomProd, PrixUnitaire, TauxTVA, Stock, Quantite,Descriptionn,DatePeremption) VALUES (?, ?, ?, ?, ?,?,?)';
+    db.query(query, [NomProd, PrixUnitaire, TauxTVA, Stock, Quantite,Descriptionn,DatePeremption], (err, result) => {
         if (err) {
             console.error(err);
             res.status(500).send('Erreur lors de l\'insertion du produit.');
@@ -164,7 +167,7 @@ app.post('/addProduct', (req, res) => {
 
 });
 app.get('/getProducts', (req, res) => {
-    db.query('SELECT  NomProd, PrixUnitaire, TauxTVA, Stock, Quantite, Photo FROM produits', (err, result) => {
+    db.query('SELECT  NomProd, PrixUnitaire, TauxTVA, Stock, Quantite, Photo ,Descriptionn,DatePeremption FROM produits', (err, result) => {
         if (err) {
             console.error("Error fetching users:", err);
             res.status(500).send("Internal server error");
