@@ -86,6 +86,8 @@ app.post('/LogIn',(req,res)=>{
 
             }
         } )
+
+
 })
 
 app.put('/update-product', (req, res) => {
@@ -141,6 +143,80 @@ app.delete('/deleteProduct/:id', (req, res) => {
 
 
 
+    // Delete vendor from the database
+    db.query('DELETE FROM utilisateur WHERE IdUtilisateur = ?', [id], (err, result) => {
+        if (err) {
+            console.error(err);
+            res.status(500).send('Error deleting vendor');
+        } else {
+            console.log(`Deleted vendor with ID ${id}`);
+            res.sendStatus(204);
+        }
+    });
+});
+app.get('/details-commandes', (req, res) => {
+    const date = req.query.date;
+    db.query(
+        `SELECT DISTINCT c.NumCom, c.Date, u.Nom, u.Prenom, f.PrixTotal
+         FROM commande c
+                  INNER JOIN utilisateur u ON c.utilisateur_IdUtilisateur = u.IdUtilisateur
+                  INNER JOIN facture f ON c.NumCom = f.NumCom
+         WHERE c.Date = ?`,
+        [date],
+        (err, result) => {
+            if (err) {
+                console.error('Error fetching daily commands:', err);
+                res.status(500).json({ error: 'Internal server error' });
+                return;
+            }
+            res.status(200).json(result);
+        }
+    );
+});
+
+// Endpoint pour obtenir les détails des commandes pour une période donnée (recette hebdomadaire)
+app.get('/weekly-revenue', (req, res) => {
+    const startDate = req.query.startDate;
+    const endDate = req.query.endDate;
+    db.query(
+        `SELECT DISTINCT c.NumCom, c.Date, u.Nom, u.Prenom, f.PrixTotal
+         FROM commande c
+                  INNER JOIN utilisateur u ON c.utilisateur_IdUtilisateur = u.IdUtilisateur
+                  INNER JOIN facture f ON c.NumCom = f.NumCom
+         WHERE c.Date BETWEEN ? AND ?`,
+        [startDate, endDate],
+        (err, result) => {
+            if (err) {
+                console.error('Error fetching weekly commands:', err);
+                res.status(500).json({ error: 'Internal server error' });
+                return;
+            }
+            res.status(200).json(result);
+        }
+    );
+});
+
+// Endpoint pour obtenir les détails des commandes pour un mois donné (recette mensuelle)
+app.get('/monthly-revenue', (req, res) => {
+    const startDate = req.query.startDate;
+    const endDate = req.query.endDate;
+    db.query(
+        `SELECT DISTINCT c.NumCom, c.Date, u.Nom, u.Prenom, f.PrixTotal
+         FROM commande c
+                  INNER JOIN utilisateur u ON c.utilisateur_IdUtilisateur = u.IdUtilisateur
+                  INNER JOIN facture f ON c.NumCom = f.NumCom
+         WHERE c.Date BETWEEN ? AND ?`,
+        [startDate, endDate],
+        (err, result) => {
+            if (err) {
+                console.error('Error fetching monthly commands:', err);
+                res.status(500).json({ error: 'Internal server error' });
+                return;
+            }
+            res.status(200).json(result);
+        }
+    );
+});
 
 app.post('/addProduct', (req, res) => {
 
