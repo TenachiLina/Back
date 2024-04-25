@@ -91,7 +91,7 @@ app.put('/update-product', (req, res) => {
     const { id, productName, unitPrice, vatRate, stock, alertQuantity } = req.body;
 
     db.query(
-        'UPDATE produits SET productName = ?, unitPrice = ?, vatRate = ?, stock = ?, alertQuantity = ? WHERE id = ?',
+        'UPDATE produits SET NomProd = ?, PrixUnitaire = ?, TauxTVA = ?, Stock = ?, QuantiteA = ? WHERE IdProd = ?',
         [productName, unitPrice, vatRate, stock, alertQuantity, id],
         (err, result) => {
             if (err) {
@@ -149,10 +149,29 @@ app.delete('/vendors/:id', (req, res) => {
     });
 });
 
+app.get('/getProducts', (req, res) => {
+    db.query('SELECT NomProd, PrixUnitaire, TauxTVA, Stock, QuantiteA FROM pharm.produits', (err, result) => {
+        if (err) {
+            console.error("Error fetching products:", err);
+            res.status(500).send("Internal server error");
+        } else {
+            // Check if the result has at least one row
+            if (result.length > 0) {
+                console.log("First product:", result[0]); // Log the first row
+                res.status(200).json(result);
+            } else {
+                console.log("No products found.");
+                res.status(404).send("No products found.");
+            }
+        }
+    });
+});
+
+
 app.post('/addProduct', (req, res) => {
 
     const { NomProd, PrixUnitaire, TauxTVA, Stock, Quantite } = req.body;
-    const query = 'INSERT INTO produits (NomProd, PrixUnitaire, TauxTVA, Stock, Quantite) VALUES (?, ?, ?, ?, ?)';
+    const query = 'INSERT INTO produits (NomProd, PrixUnitaire, TauxTVA, Stock, QuantiteA) VALUES (?, ?, ?, ?, ?)';
     db.query(query, [NomProd, PrixUnitaire, TauxTVA, Stock, Quantite], (err, result) => {
         if (err) {
             console.error(err);
@@ -163,16 +182,10 @@ app.post('/addProduct', (req, res) => {
     });
 
 });
-app.get('/getProducts', (req, res) => {
-    db.query('SELECT  NomProd, PrixUnitaire, TauxTVA, Stock, Quantite, Photo FROM produits', (err, result) => {
-        if (err) {
-            console.error("Error fetching users:", err);
-            res.status(500).send("Internal server error");
-        } else {
-            res.status(200).json(result);
-        }
-    });
-});
+
+
+
+
 app.delete('/deleteVendor/:id', (req, res) => {
     const vendorId = req.params.id;
 
