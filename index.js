@@ -2,12 +2,13 @@ const express = require('express')
 const app = express()
 const mysql = require('mysql')
 const cors = require('cors')
+const dbService = require('./dbService');
 
 app.use(express.json());
 app.use(cors());
 const db = mysql.createConnection({
-   host: 'localhost',
-   user: 'root',
+    host: 'localhost',
+    user: 'root',
     password: '',
     database: 'pharm',
 
@@ -83,18 +84,18 @@ app.post('/LogIn',(req,res)=>{
                     res.send("Wrong Username or Password!");
                 }
 
-                }
+            }
         } )
 
 
 })
 
 app.put('/update-product', (req, res) => {
-    const { id, productName, unitPrice, vatRate, stock, alertQuantity } = req.body;
+    const { IdProd, NomProd, PrixUnitaire, TauxTVA, Stock, Quantete,Description,DatePeremption } = req.body;
 
     db.query(
-        'UPDATE produits SET productName = ?, unitPrice = ?, vatRate = ?, stock = ?, alertQuantity = ? WHERE id = ?',
-        [productName, unitPrice, vatRate, stock, alertQuantity, id],
+        'UPDATE produits SET NomProd = ?, PrixUnitaire = ?, TauxTVA = ?, Stock = ?, Quantete = ? ,Description = ? , DatePeremption = ? WHERE IdProd = ?',
+        [IdProd,NomProd, PrixUnitaire, TauxTVA, Stock, Quantete, Description,DatePeremption],
         (err, result) => {
             if (err) {
                 console.error('Error updating product:', err);
@@ -124,9 +125,13 @@ app.put('/update-vendor', (req, res) => {
     );
 });
 app.delete('/deleteProduct/:id', (req, res) => {
-    const id = req.params.id;
+    const IdProd = req.params.id;
+    if (!IdProd) {
+        res.status(400).send('ID du produit non fourni.');
+        return;
+    }
     const query = 'DELETE FROM produits WHERE IdProd = ?';
-    db.query(query, [id], (err, result) => {
+    db.query(query, [IdProd], (err, result) => {
         if (err) {
             console.error(err);
             res.status(500).send('Erreur lors de la suppression du produit.');
@@ -136,8 +141,7 @@ app.delete('/deleteProduct/:id', (req, res) => {
     });
 });
 
-app.delete('/vendors/:id', (req, res) => {
-    const { id } = req.params;
+
 
     // Delete vendor from the database
     db.query('DELETE FROM utilisateur WHERE IdUtilisateur = ?', [id], (err, result) => {
@@ -216,9 +220,9 @@ app.get('/monthly-revenue', (req, res) => {
 
 app.post('/addProduct', (req, res) => {
 
-    const { NomProd, PrixUnitaire, TauxTVA, Stock, Quantite } = req.body;
-    const query = 'INSERT INTO produits (NomProd, PrixUnitaire, TauxTVA, Stock, Quantite) VALUES (?, ?, ?, ?, ?)';
-    db.query(query, [NomProd, PrixUnitaire, TauxTVA, Stock, Quantite], (err, result) => {
+    const { NomProd, PrixUnitaire, TauxTVA, Stock, Quantite,Description,DatePeremption } = req.body;
+    const query = 'INSERT INTO produits (NomProd, PrixUnitaire, TauxTVA, Stock, Quantite,Description,DatePeremption) VALUES (?, ?, ?, ?, ?,?,?)';
+    db.query(query, [NomProd, PrixUnitaire, TauxTVA, Stock, Quantite,Description,DatePeremption], (err, result) => {
         if (err) {
             console.error(err);
             res.status(500).send('Erreur lors de l\'insertion du produit.');
@@ -229,7 +233,7 @@ app.post('/addProduct', (req, res) => {
 
 });
 app.get('/getProducts', (req, res) => {
-    db.query('SELECT  NomProd, PrixUnitaire, TauxTVA, Stock, Quantite, Photo FROM produits', (err, result) => {
+    db.query('SELECT  NomProd, PrixUnitaire, TauxTVA, Stock, Quantite, Photo ,Description,DatePeremption FROM produits', (err, result) => {
         if (err) {
             console.error("Error fetching users:", err);
             res.status(500).send("Internal server error");
