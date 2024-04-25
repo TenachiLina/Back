@@ -30,7 +30,7 @@ app.get("/basket", (req, res) => {
 
 app.post("/basket", (req, res) => {
     const { NumCom, utilisateur_IdUtilisateur, produits_IdProd, Quantité, Date, Traitée, Envoyée } = req.body;
-    const q = "INSERT INTO commande (NumCom, utilisateur_IdUtilisateur, produits_IdProd, Quantité, Date, Traitée, Envoyée) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    const q = "INSERT INTO commande (NumCom, utilisateur_IdUtilisateur, produits_IdProd, Quantité, Date, Traitée, Envoyee) VALUES (?, ?, ?, ?, ?, ?, ?)";
     const values = [NumCom, utilisateur_IdUtilisateur, produits_IdProd, Quantité, Date, Traitée, Envoyée];
 
     db.query(q, values, (err, result) => {
