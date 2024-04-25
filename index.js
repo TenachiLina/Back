@@ -89,11 +89,11 @@ app.post('/LogIn',(req,res)=>{
 })
 
 app.put('/update-product', (req, res) => {
-    const { IdProd, NomProd, PrixUnitaire, TauxTVA, Stock, Quantete,Descriptionn,DatePeremption } = req.body;
+    const { IdProd, NomProd, PrixUnitaire, TauxTVA, Stock, Quantete,Description,DatePeremption } = req.body;
 
     db.query(
         'UPDATE produits SET NomProd = ?, PrixUnitaire = ?, TauxTVA = ?, Stock = ?, Quantete = ? ,Description = ? , DatePeremption = ? WHERE IdProd = ?',
-        [IdProd,NomProd, PrixUnitaire, TauxTVA, Stock, Quantete, Descriptionn,DatePeremption],
+        [IdProd,NomProd, PrixUnitaire, TauxTVA, Stock, Quantete, Description,DatePeremption],
         (err, result) => {
             if (err) {
                 console.error('Error updating product:', err);
@@ -144,9 +144,9 @@ app.delete('/deleteProduct/:id', (req, res) => {
 
 app.post('/addProduct', (req, res) => {
 
-    const { NomProd, PrixUnitaire, TauxTVA, Stock, Quantite,Descriptionn,DatePeremption } = req.body;
-    const query = 'INSERT INTO produits (NomProd, PrixUnitaire, TauxTVA, Stock, Quantite,Descriptionn,DatePeremption) VALUES (?, ?, ?, ?, ?,?,?)';
-    db.query(query, [NomProd, PrixUnitaire, TauxTVA, Stock, Quantite,Descriptionn,DatePeremption], (err, result) => {
+    const { NomProd, PrixUnitaire, TauxTVA, Stock, Quantite,Description,DatePeremption } = req.body;
+    const query = 'INSERT INTO produits (NomProd, PrixUnitaire, TauxTVA, Stock, Quantite,Description,DatePeremption) VALUES (?, ?, ?, ?, ?,?,?)';
+    db.query(query, [NomProd, PrixUnitaire, TauxTVA, Stock, Quantite,Description,DatePeremption], (err, result) => {
         if (err) {
             console.error(err);
             res.status(500).send('Erreur lors de l\'insertion du produit.');
@@ -157,7 +157,7 @@ app.post('/addProduct', (req, res) => {
 
 });
 app.get('/getProducts', (req, res) => {
-    db.query('SELECT  NomProd, PrixUnitaire, TauxTVA, Stock, Quantite, Photo ,Descriptionn,DatePeremption FROM produits', (err, result) => {
+    db.query('SELECT  NomProd, PrixUnitaire, TauxTVA, Stock, Quantite, Photo ,Description,DatePeremption FROM produits', (err, result) => {
         if (err) {
             console.error("Error fetching users:", err);
             res.status(500).send("Internal server error");
