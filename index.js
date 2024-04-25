@@ -2,7 +2,7 @@ const express = require('express')
 const app = express()
 const mysql = require('mysql')
 const cors = require('cors')
-const dbService = require('./dbService');
+
 
 app.use(express.json());
 app.use(cors());
@@ -91,12 +91,12 @@ app.post('/LogIn',(req,res)=>{
 })
 
 app.put('/update-product', (req, res) => {
-    const { IdProd, NomProd, PrixUnitaire, TauxTVA, Stock, Quantete,Description,DatePeremption } = req.body;
+    const { IdProd, NomProd, PrixUnitaire, TauxTVA, Stock, QuanteteA,Description,DatePeremption } = req.body;
 
     db.query(
 
-        'UPDATE produits SET NomProd = ?, PrixUnitaire = ?, TauxTVA = ?, Stock = ?, Quantete = ? ,Description = ? , DatePeremption = ? WHERE IdProd = ?',
-        [IdProd,NomProd, PrixUnitaire, TauxTVA, Stock, Quantete, Description,DatePeremption],
+        'UPDATE produits SET NomProd = ?, PrixUnitaire = ?, TauxTVA = ?, Stock = ?, QuanteteA = ? ,Description = ? , DatePeremption = ? WHERE IdProd = ?',
+        [IdProd,NomProd, PrixUnitaire, TauxTVA, Stock, QuanteteA, Description,DatePeremption],
         (err, result) => {
             if (err) {
                 console.error('Error updating product:', err);
@@ -145,6 +145,8 @@ app.delete('/deleteProduct/:id', (req, res) => {
 
 
     // Delete vendor from the database
+app.delete('/deleteVendor/:id', (req, res) => {
+    const vendorId = req.params.id;
     db.query('DELETE FROM utilisateur WHERE IdUtilisateur = ?', [id], (err, result) => {
         if (err) {
             console.error(err);
@@ -240,8 +242,8 @@ app.get('/getProducts', (req, res) => {
 
 app.post('/addProduct', (req, res) => {
 
-    const { NomProd, PrixUnitaire, TauxTVA, Stock, Quantite,Description,DatePeremption } = req.body;
-    const query = 'INSERT INTO produits (NomProd, PrixUnitaire, TauxTVA, Stock, Quantite,Description,DatePeremption) VALUES (?, ?, ?, ?, ?,?,?)';
+    const { NomProd, PrixUnitaire, TauxTVA, Stock, QuantiteA,Description,DatePeremption } = req.body;
+    const query = 'INSERT INTO produits (NomProd, PrixUnitaire, TauxTVA, Stock, QuantiteA,Description,DatePeremption) VALUES (?, ?, ?, ?, ?,?,?)';
     db.query(query, [NomProd, PrixUnitaire, TauxTVA, Stock, QuantiteA ,Description,DatePeremption], (err, result) => {
 
       if (err) {
