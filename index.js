@@ -7,8 +7,8 @@ const dbService = require('./dbService');
 app.use(express.json());
 app.use(cors());
 const db = mysql.createConnection({
-   host: 'localhost',
-   user: 'root',
+    host: 'localhost',
+    user: 'root',
     password: '',
     database: 'pharm',
 
@@ -84,7 +84,7 @@ app.post('/LogIn',(req,res)=>{
                     res.send("Wrong Username or Password!");
                 }
 
-                }
+            }
         } )
 })
 
@@ -92,7 +92,7 @@ app.put('/update-product', (req, res) => {
     const { IdProd, NomProd, PrixUnitaire, TauxTVA, Stock, Quantete,Descriptionn,DatePeremption } = req.body;
 
     db.query(
-        'UPDATE produits SET NomProd = ?, PrixUnitaire = ?, TauxTVA = ?, Stock = ?, Quantete = ? WHERE IdProd = ?',
+        'UPDATE produits SET NomProd = ?, PrixUnitaire = ?, TauxTVA = ?, Stock = ?, Quantete = ? ,Description = ? , DatePeremption = ? WHERE IdProd = ?',
         [IdProd,NomProd, PrixUnitaire, TauxTVA, Stock, Quantete, Descriptionn,DatePeremption],
         (err, result) => {
             if (err) {
@@ -140,17 +140,7 @@ app.delete('/deleteProduct/:id', (req, res) => {
 });
 
 
-app.delete('/vendors/:id', (req, res) => {
-    const { id } = req.params;
-    const db = dbService.getd;
 
-    const result = db.deleteRowById(id);
-
-    result
-        .then(data => response.json({success : data}))
-        .catch(err => console.log(err));
-
-});
 
 app.post('/addProduct', (req, res) => {
 
