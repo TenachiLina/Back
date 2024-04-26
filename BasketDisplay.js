@@ -30,7 +30,7 @@ app.get("/basket", (req, res) => {
 
 app.post("/basket", (req, res) => {
     const { NumCom, utilisateur_IdUtilisateur, produits_IdProd, Quantité, Date, Traitée, Envoyée } = req.body;
-    const q = "INSERT INTO commande (NumCom, utilisateur_IdUtilisateur, produits_IdProd, Quantité, Date, Traitée, Envoyee) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    const q = "INSERT INTO commande (NumCom, utilisateur_IdUtilisateur, produits_IdProd, Quantite, Date, Traitee, Envoyee) VALUES (?, ?, ?, ?, ?, ?, ?)";
     const values = [NumCom, utilisateur_IdUtilisateur, produits_IdProd, Quantité, Date, Traitée, Envoyée];
 
     db.query(q, values, (err, result) => {
@@ -43,7 +43,7 @@ app.post("/basket", (req, res) => {
     });
 });
 app.get("/totalPrice", (req, res) => {
-    const q = "SELECT SUM(commande.Quantité * produits.PrixUnitaire) AS totalPrice FROM commande JOIN produits ON commande.produits_IdProd = produits.IdProd";
+    const q = "SELECT SUM(commande.Quantite * produits.PrixUnitaire) AS totalPrice FROM commande JOIN produits ON commande.produits_IdProd = produits.IdProd";
     db.query(q, (err, data) => {
         if (err) return res.json(err);
         return res.json(data[0]); // Assuming the result is a single row with totalPrice

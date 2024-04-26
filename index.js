@@ -2,7 +2,7 @@ const express = require('express')
 const app = express()
 const mysql = require('mysql')
 const cors = require('cors')
-const dbService = require('./dbService');
+/*const dbService = require('./dbService');*/
 
 app.use(express.json());
 app.use(cors());
@@ -95,7 +95,7 @@ app.put('/update-product', (req, res) => {
 
     db.query(
 
-        'UPDATE produits SET NomProd = ?, PrixUnitaire = ?, TauxTVA = ?, Stock = ?, Quantete = ? ,Description = ? , DatePeremption = ? WHERE IdProd = ?',
+        'UPDATE produits SET NomProd = ?, PrixUnitaire = ?, TauxTVA = ?, Stock = ?, QuantiteA = ? ,Description = ? , DatePeremption = ? WHERE IdProd = ?',
         [IdProd,NomProd, PrixUnitaire, TauxTVA, Stock, Quantete, Description,DatePeremption],
         (err, result) => {
             if (err) {
@@ -144,7 +144,7 @@ app.delete('/deleteProduct/:id', (req, res) => {
 
 
 
-    // Delete vendor from the database
+/*    // Delete vendor from the database
     db.query('DELETE FROM utilisateur WHERE IdUtilisateur = ?', [id], (err, result) => {
         if (err) {
             console.error(err);
@@ -155,6 +155,33 @@ app.delete('/deleteProduct/:id', (req, res) => {
         }
     });
 });
+
+*/
+
+app.get('/ReceptionCommandes', (req, res) => {
+    db.query(
+        `SELECT DISTINCT c.NumCom, c.Date, u.Nom, u.Prenom, f.PrixTotal
+         FROM commande c
+                  INNER JOIN utilisateur u ON c.utilisateur_IdUtilisateur = u.IdUtilisateur
+                  INNER JOIN facture f ON c.NumCom = f.NumCom`,
+        (err, result) => {
+            if (err) {
+                console.error('Error fetching commands:', err);
+                res.status(500).json({ error: 'Internal server error' });
+                return;
+            }
+            res.status(200).json(result);
+        }
+    );
+});
+
+
+
+
+
+
+
+
 app.get('/details-commandes', (req, res) => {
     const date = req.query.date;
     db.query(
@@ -237,11 +264,34 @@ app.get('/getProducts', (req, res) => {
     });
 });
 
+app.get('/getStock', (req, res) => {
+    db.query('SELECT NomProd, PrixUnitaire, TauxTVA, Stock, QuantiteA, Description, DatePeremption  FROM pharm.produits ORDER BY DatePeremption', (err, result) => {
+        if (err) {
+            console.error("Error fetching products:", err);
+            res.status(500).send("Internal server error");
+        } else {
+            // Check if the result has at least one row
+            if (result.length > 0) {
+                console.log("First product:", result[0]); // Log the first row
+                res.status(200).json(result);
+            } else {
+                console.log("No products found.");
+                res.status(404).send("No products found.");
+            }
+        }
+    });
+});
+
+
+
+
+
+
 
 app.post('/addProduct', (req, res) => {
 
     const { NomProd, PrixUnitaire, TauxTVA, Stock, Quantite,Description,DatePeremption } = req.body;
-    const query = 'INSERT INTO produits (NomProd, PrixUnitaire, TauxTVA, Stock, Quantite,Description,DatePeremption) VALUES (?, ?, ?, ?, ?,?,?)';
+    const query = 'INSERT INTO produits (NomProd, PrixUnitaire, TauxTVA, Stock, QuantiteA ,Description,DatePeremption) VALUES (?, ?, ?, ?, ?,?,?)';
     db.query(query, [NomProd, PrixUnitaire, TauxTVA, Stock, QuantiteA ,Description,DatePeremption], (err, result) => {
 
       if (err) {
