@@ -53,6 +53,21 @@ app.post('/addseller', (req, res) => {
             }
         })
 });
+app.post('/modifySeller', (req, res) => {
+    const { id, nom, prenom, genre, numTel, addresse, userName, pwd } = req.body;
+    db.query('UPDATE utilisateur SET Nom = ?, Prenom = ?, Genre = ?, NumTel = ?, Addresse = ?, UserName = ?, Pwd = ? WHERE IdUtilisateur = ?',
+        [nom, prenom, genre, numTel, addresse, userName, pwd, id],
+        (err, result) => {
+            if (err) {
+                console.error("Erreur lors de la modification du vendeur:", err);
+                res.status(500).send("Erreur interne du serveur");
+            } else {
+                res.status(200).send("Vendeur modifié avec succès");
+            }
+        }
+    );
+});
+
 app.get('/getUsers', (req, res) => {
     db.query('SELECT IdUtilisateur, Nom, Prenom, Genre, NumTel, Addresse, UserName, Pwd FROM utilisateur WHERE TypeUtilisateur = "Vendeur"', (err, result) => {
         if (err) {
