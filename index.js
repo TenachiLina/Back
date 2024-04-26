@@ -9,7 +9,7 @@ app.use(cors());
 const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
-    password: '',
+    password: 'amanilakehal20056',
     database: 'pharm',
 
 })
@@ -53,16 +53,69 @@ app.post('/addseller', (req, res) => {
             }
         })
 });
+app.post('/modifySeller', (req, res) => {
+    const { id, nom, prenom, genre, numTel, addresse, userName, pwd } = req.body;
+    db.query('UPDATE utilisateur SET Nom = ?, Prenom = ?, Genre = ?, NumTel = ?, Addresse = ?, UserName = ?, Pwd = ? WHERE IdUtilisateur = ?',
+        [nom, prenom, genre, numTel, addresse, userName, pwd, id],
+        (err, result) => {
+            if (err) {
+                console.error("Erreur lors de la modification du vendeur:", err);
+                res.status(500).send("Erreur interne du serveur");
+            } else {
+                res.status(200).send("Vendeur modifié avec succès");
+            }
+        }
+    );
+});
+
 app.get('/getUsers', (req, res) => {
-    db.query('SELECT Nom, Prenom, Genre, NumTel, Addresse, UserName, Pwd FROM utilisateur', (err, result) => {
+    db.query('SELECT IdUtilisateur, Nom, Prenom, Genre, NumTel, Addresse, UserName, Pwd FROM utilisateur WHERE TypeUtilisateur = "Vendeur"', (err, result) => {
         if (err) {
-            console.error("Error fetching users:", err);
-            res.status(500).send("Internal server error");
+            console.error("Erreur lors de la récupération des vendeurs:", err);
+            res.status(500).send("Erreur interne du serveur");
         } else {
             res.status(200).json(result);
         }
     });
 });
+
+app.get('/checkVendorExistence/:id', (req, res) => {
+    const vendorId = req.params.id;
+    db.query('SELECT COUNT(*) AS count FROM utilisateur WHERE IdUtilisateur = ?', [vendorId], (err, result) => {
+        if (err) {
+            console.error("Erreur lors de la vérification de l'existence du vendeur :", err);
+            res.status(500).json({ error: "Erreur interne du serveur" });
+            return;
+        }
+
+        const count = result[0].count;
+        // Si count est supérieur à 0, l'ID existe
+        res.status(200).json({ exists: count > 0 });
+    });
+});
+
+app.put('/updateVendeur/:id', (req, res) => {
+    const userId = req.params.id;
+    const { Nom, Prenom, Genre, NumTel, Addresse, UserName, Pwd } = req.body;
+
+    if (!userId) {
+        res.status(400).send("ID de l'utilisateur non fourni.");
+        return;
+    }
+
+    const query = 'UPDATE utilisateur SET Nom=?, Prenom=?, Genre=?, NumTel=?, Addresse=?, UserName=?, Pwd=? WHERE IdUtilisateur=?';
+    db.query(query, [Nom, Prenom, Genre, NumTel, Addresse, UserName, Pwd, userId], (err, result) => {
+        if (err) {
+            console.error(err);
+            res.status(500).send('Erreur lors de la mise à jour du vendeur.');
+            return;
+        }
+        res.status(200).send('Vendeur mis à jour avec succès.');
+    });
+});
+
+
+
 
 
 app.post('/LogIn',(req,res)=>{
@@ -97,6 +150,7 @@ app.put('/update-product', (req, res) => {
 
         'UPDATE produits SET NomProd = ?, PrixUnitaire = ?, TauxTVA = ?, Stock = ?, QuanteteA = ? ,Description = ? , DatePeremption = ? WHERE IdProd = ?',
         [IdProd,NomProd, PrixUnitaire, TauxTVA, Stock, QuanteteA, Description,DatePeremption],
+
         (err, result) => {
             if (err) {
                 console.error('Error updating product:', err);
@@ -144,9 +198,12 @@ app.delete('/deleteProduct/:id', (req, res) => {
 
 
 
+
     // Delete vendor from the database
-app.delete('/deleteVendor/:id', (req, res) => {
-    const vendorId = req.params.id;
+//app.delete('/deleteVendor/:id', (req, res) => {
+ //   const vendorId = req.params.id;
+
+/*    // Delete vendor from the database
     db.query('DELETE FROM utilisateur WHERE IdUtilisateur = ?', [id], (err, result) => {
         if (err) {
             console.error(err);
@@ -157,6 +214,33 @@ app.delete('/deleteVendor/:id', (req, res) => {
         }
     });
 });
+
+*/
+
+app.get('/ReceptionCommandes', (req, res) => {
+    db.query(
+        `SELECT DISTINCT c.NumCom, c.Date, u.Nom, u.Prenom, f.PrixTotal
+         FROM commande c
+                  INNER JOIN utilisateur u ON c.utilisateur_IdUtilisateur = u.IdUtilisateur
+                  INNER JOIN facture f ON c.NumCom = f.NumCom`,
+        (err, result) => {
+            if (err) {
+                console.error('Error fetching commands:', err);
+                res.status(500).json({ error: 'Internal server error' });
+                return;
+            }
+            res.status(200).json(result);
+        }
+    );
+});
+
+
+
+
+
+
+
+
 app.get('/details-commandes', (req, res) => {
     const date = req.query.date;
     db.query(
@@ -239,11 +323,35 @@ app.get('/getProducts', (req, res) => {
     });
 });
 
+app.get('/getStock', (req, res) => {
+    db.query('SELECT NomProd, PrixUnitaire, TauxTVA, Stock, QuantiteA, Description, DatePeremption  FROM pharm.produits ORDER BY DatePeremption', (err, result) => {
+        if (err) {
+            console.error("Error fetching products:", err);
+            res.status(500).send("Internal server error");
+        } else {
+            // Check if the result has at least one row
+            if (result.length > 0) {
+                console.log("First product:", result[0]); // Log the first row
+                res.status(200).json(result);
+            } else {
+                console.log("No products found.");
+                res.status(404).send("No products found.");
+            }
+        }
+    });
+});
+
+
+
+
+
+
 
 app.post('/addProduct', (req, res) => {
 
     const { NomProd, PrixUnitaire, TauxTVA, Stock, QuantiteA,Description,DatePeremption } = req.body;
     const query = 'INSERT INTO produits (NomProd, PrixUnitaire, TauxTVA, Stock, QuantiteA,Description,DatePeremption) VALUES (?, ?, ?, ?, ?,?,?)';
+
     db.query(query, [NomProd, PrixUnitaire, TauxTVA, Stock, QuantiteA ,Description,DatePeremption], (err, result) => {
 
       if (err) {
@@ -271,8 +379,9 @@ app.get('/getProducts', (req, res) => {
     });
 });
 
-app.delete('/deleteVendor/:id', (req, res) => {
-    const vendorId = req.params.id;
+// Supprimer un vendeur de la base de données
+app.delete('/deleteVendor/:IdUtilisateur', (req, res) => {
+    const vendorId = req.params.IdUtilisateur;
 
     // Supprimer le vendeur de la base de données
     db.query('DELETE FROM utilisateur WHERE IdUtilisateur = ?', [vendorId], (err, result) => {
@@ -281,10 +390,13 @@ app.delete('/deleteVendor/:id', (req, res) => {
             res.status(500).send('Erreur lors de la suppression du vendeur');
         } else {
             console.log(`Vendeur supprimé avec l'ID ${vendorId}`);
-            res.sendStatus(204);
+            res.sendStatus(204); // Réponse 204 indiquant que la suppression a réussi
         }
     });
 });
+
+
+
 
 app.listen(3002,() =>{
     console.log("running on port 3002");
