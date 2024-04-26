@@ -2,13 +2,14 @@ const express = require('express')
 const app = express()
 const mysql = require('mysql')
 const cors = require('cors')
+const dbService = require('./dbService');
 
 app.use(express.json());
 app.use(cors());
 const db = mysql.createConnection({
-   host: 'localhost',
-   user: 'root',
-    password: 'amanilakehal20056',
+    host: 'localhost',
+    user: 'root',
+    password: '',
     database: 'pharm',
 
 })
@@ -83,10 +84,205 @@ app.post('/LogIn',(req,res)=>{
                     res.send("Wrong Username or Password!");
                 }
 
-                }
+            }
         } )
+
+
 })
 
+app.put('/update-product', (req, res) => {
+    const { IdProd, NomProd, PrixUnitaire, TauxTVA, Stock, Quantete,Description,DatePeremption } = req.body;
+
+    db.query(
+
+        'UPDATE produits SET NomProd = ?, PrixUnitaire = ?, TauxTVA = ?, Stock = ?, Quantete = ? ,Description = ? , DatePeremption = ? WHERE IdProd = ?',
+        [IdProd,NomProd, PrixUnitaire, TauxTVA, Stock, Quantete, Description,DatePeremption],
+        (err, result) => {
+            if (err) {
+                console.error('Error updating product:', err);
+                res.send(err);
+            } else {
+                res.send('Product updated successfully');
+
+            }
+        }
+    );
+});
+
+app.put('/update-vendor', (req, res) => {
+    const { id, carteIdentite, nom, prenom, genre, numTel, addresse, typeUtilisateur, userName, pwd } = req.body;
+
+    db.query(
+        'UPDATE utilisateur SET CarteIdentite = ?, Nom = ?, Prenom = ?, Genre = ?, NumTel = ?, Addresse = ?, TypeUtilisateur = ?, UserName = ?, Pwd = ? WHERE utilisateur.IdUtilisateur = ?\n',
+        [carteIdentite, nom, prenom, genre, numTel, addresse, typeUtilisateur, userName, pwd, id],
+        (err, result) => {
+            if (err) {
+                console.error('Error updating vendor:', err);
+                res.send(err);
+            } else {
+                res.send('Vendor updated successfully');
+            }
+        }
+    );
+});
+app.delete('/deleteProduct/:id', (req, res) => {
+    const IdProd = req.params.id;
+    if (!IdProd) {
+        res.status(400).send('ID du produit non fourni.');
+        return;
+    }
+    const query = 'DELETE FROM produits WHERE IdProd = ?';
+    db.query(query, [IdProd], (err, result) => {
+        if (err) {
+            console.error(err);
+            res.status(500).send('Erreur lors de la suppression du produit.');
+            return;
+        }
+        res.status(200).send('Produit supprimé avec succès.');
+    });
+});
+
+
+
+    // Delete vendor from the database
+    db.query('DELETE FROM utilisateur WHERE IdUtilisateur = ?', [id], (err, result) => {
+        if (err) {
+            console.error(err);
+            res.status(500).send('Error deleting vendor');
+        } else {
+            console.log(`Deleted vendor with ID ${id}`);
+            res.sendStatus(204);
+        }
+    });
+});
+app.get('/details-commandes', (req, res) => {
+    const date = req.query.date;
+    db.query(
+        `SELECT DISTINCT c.NumCom, c.Date, u.Nom, u.Prenom, f.PrixTotal
+         FROM commande c
+                  INNER JOIN utilisateur u ON c.utilisateur_IdUtilisateur = u.IdUtilisateur
+                  INNER JOIN facture f ON c.NumCom = f.NumCom
+         WHERE c.Date = ?`,
+        [date],
+        (err, result) => {
+            if (err) {
+                console.error('Error fetching daily commands:', err);
+                res.status(500).json({ error: 'Internal server error' });
+                return;
+            }
+            res.status(200).json(result);
+        }
+    );
+});
+
+// Endpoint pour obtenir les détails des commandes pour une période donnée (recette hebdomadaire)
+app.get('/weekly-revenue', (req, res) => {
+    const startDate = req.query.startDate;
+    const endDate = req.query.endDate;
+    db.query(
+        `SELECT DISTINCT c.NumCom, c.Date, u.Nom, u.Prenom, f.PrixTotal
+         FROM commande c
+                  INNER JOIN utilisateur u ON c.utilisateur_IdUtilisateur = u.IdUtilisateur
+                  INNER JOIN facture f ON c.NumCom = f.NumCom
+         WHERE c.Date BETWEEN ? AND ?`,
+        [startDate, endDate],
+        (err, result) => {
+            if (err) {
+                console.error('Error fetching weekly commands:', err);
+                res.status(500).json({ error: 'Internal server error' });
+                return;
+            }
+            res.status(200).json(result);
+        }
+    );
+});
+
+// Endpoint pour obtenir les détails des commandes pour un mois donné (recette mensuelle)
+app.get('/monthly-revenue', (req, res) => {
+    const startDate = req.query.startDate;
+    const endDate = req.query.endDate;
+    db.query(
+        `SELECT DISTINCT c.NumCom, c.Date, u.Nom, u.Prenom, f.PrixTotal
+         FROM commande c
+                  INNER JOIN utilisateur u ON c.utilisateur_IdUtilisateur = u.IdUtilisateur
+                  INNER JOIN facture f ON c.NumCom = f.NumCom
+         WHERE c.Date BETWEEN ? AND ?`,
+        [startDate, endDate],
+        (err, result) => {
+            if (err) {
+                console.error('Error fetching monthly commands:', err);
+                res.status(500).json({ error: 'Internal server error' });
+                return;
+            }
+            res.status(200).json(result);
+        }
+    );
+});
+
+app.get('/getProducts', (req, res) => {
+    db.query('SELECT NomProd, PrixUnitaire, TauxTVA, Stock, QuantiteA FROM pharm.produits', (err, result) => {
+        if (err) {
+            console.error("Error fetching products:", err);
+            res.status(500).send("Internal server error");
+        } else {
+            // Check if the result has at least one row
+            if (result.length > 0) {
+                console.log("First product:", result[0]); // Log the first row
+                res.status(200).json(result);
+            } else {
+                console.log("No products found.");
+                res.status(404).send("No products found.");
+            }
+        }
+    });
+});
+
+
+app.post('/addProduct', (req, res) => {
+
+    const { NomProd, PrixUnitaire, TauxTVA, Stock, Quantite,Description,DatePeremption } = req.body;
+    const query = 'INSERT INTO produits (NomProd, PrixUnitaire, TauxTVA, Stock, Quantite,Description,DatePeremption) VALUES (?, ?, ?, ?, ?,?,?)';
+    db.query(query, [NomProd, PrixUnitaire, TauxTVA, Stock, QuantiteA ,Description,DatePeremption], (err, result) => {
+
+      if (err) {
+            console.error(err);
+            res.status(500).send('Erreur lors de l\'insertion du produit.');
+            return;
+        }
+        res.status(201).send('Produit inséré avec succès.');
+    });
+
+});
+
+
+
+
+
+app.get('/getProducts', (req, res) => {
+    db.query('SELECT  NomProd, PrixUnitaire, TauxTVA, Stock, QuantiteA , Photo ,Description,DatePeremption FROM produits', (err, result) => {
+        if (err) {
+            console.error("Error fetching users:", err);
+            res.status(500).send("Internal server error");
+        } else {
+            res.status(200).json(result);
+        }
+    });
+});
+
+app.delete('/deleteVendor/:id', (req, res) => {
+    const vendorId = req.params.id;
+
+    // Supprimer le vendeur de la base de données
+    db.query('DELETE FROM utilisateur WHERE IdUtilisateur = ?', [vendorId], (err, result) => {
+        if (err) {
+            console.error(err);
+            res.status(500).send('Erreur lors de la suppression du vendeur');
+        } else {
+            console.log(`Vendeur supprimé avec l'ID ${vendorId}`);
+            res.sendStatus(204);
+        }
+    });
+});
 
 app.listen(3002,() =>{
     console.log("running on port 3002");
