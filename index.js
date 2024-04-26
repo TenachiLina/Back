@@ -54,15 +54,53 @@ app.post('/addseller', (req, res) => {
         })
 });
 app.get('/getUsers', (req, res) => {
-    db.query('SELECT Nom, Prenom, Genre, NumTel, Addresse, UserName, Pwd FROM utilisateur', (err, result) => {
+    db.query('SELECT IdUtilisateur, Nom, Prenom, Genre, NumTel, Addresse, UserName, Pwd FROM utilisateur WHERE TypeUtilisateur = "Vendeur"', (err, result) => {
         if (err) {
-            console.error("Error fetching users:", err);
-            res.status(500).send("Internal server error");
+            console.error("Erreur lors de la récupération des vendeurs:", err);
+            res.status(500).send("Erreur interne du serveur");
         } else {
             res.status(200).json(result);
         }
     });
 });
+
+app.get('/checkVendorExistence/:id', (req, res) => {
+    const vendorId = req.params.id;
+    db.query('SELECT COUNT(*) AS count FROM utilisateur WHERE IdUtilisateur = ?', [vendorId], (err, result) => {
+        if (err) {
+            console.error("Erreur lors de la vérification de l'existence du vendeur :", err);
+            res.status(500).json({ error: "Erreur interne du serveur" });
+            return;
+        }
+
+        const count = result[0].count;
+        // Si count est supérieur à 0, l'ID existe
+        res.status(200).json({ exists: count > 0 });
+    });
+});
+
+app.put('/updateVendeur/:id', (req, res) => {
+    const userId = req.params.id;
+    const { Nom, Prenom, Genre, NumTel, Addresse, UserName, Pwd } = req.body;
+
+    if (!userId) {
+        res.status(400).send("ID de l'utilisateur non fourni.");
+        return;
+    }
+
+    const query = 'UPDATE utilisateur SET Nom=?, Prenom=?, Genre=?, NumTel=?, Addresse=?, UserName=?, Pwd=? WHERE IdUtilisateur=?';
+    db.query(query, [Nom, Prenom, Genre, NumTel, Addresse, UserName, Pwd, userId], (err, result) => {
+        if (err) {
+            console.error(err);
+            res.status(500).send('Erreur lors de la mise à jour du vendeur.');
+            return;
+        }
+        res.status(200).send('Vendeur mis à jour avec succès.');
+    });
+});
+
+
+
 
 
 app.post('/LogIn',(req,res)=>{
@@ -319,8 +357,9 @@ app.get('/getProducts', (req, res) => {
     });
 });
 
-app.delete('/deleteVendor/:id', (req, res) => {
-    const vendorId = req.params.id;
+// Supprimer un vendeur de la base de données
+app.delete('/deleteVendor/:IdUtilisateur', (req, res) => {
+    const vendorId = req.params.IdUtilisateur;
 
     // Supprimer le vendeur de la base de données
     db.query('DELETE FROM utilisateur WHERE IdUtilisateur = ?', [vendorId], (err, result) => {
@@ -329,10 +368,13 @@ app.delete('/deleteVendor/:id', (req, res) => {
             res.status(500).send('Erreur lors de la suppression du vendeur');
         } else {
             console.log(`Vendeur supprimé avec l'ID ${vendorId}`);
-            res.sendStatus(204);
+            res.sendStatus(204); // Réponse 204 indiquant que la suppression a réussi
         }
     });
 });
+
+
+
 
 app.listen(3002,() =>{
     console.log("running on port 3002");
