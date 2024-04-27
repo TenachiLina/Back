@@ -9,7 +9,7 @@ app.use(cors());
 const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
-    password: 'amanilakehal20056',
+    password: '',
     database: 'pharm',
 
 })
@@ -63,6 +63,20 @@ app.post('/modifySeller', (req, res) => {
                 res.status(500).send("Erreur interne du serveur");
             } else {
                 res.status(200).send("Vendeur modifié avec succès");
+            }
+        }
+    );
+});
+app.post('/modifyProduct', (req, res) => {
+    const { Id, nomProd, prixUnitaire, tauxTVA, quantiteA, stock, description, datePeremption } = req.body;
+    db.query('UPDATE pharm.produits SET NomProd = ?, PrixUnitaire = ?, TauxTVA = ?, QuantiteA = ?, Stock = ?, Description = ?, DatePeremption = ? WHERE IdProd = ?',
+        [nomProd, prixUnitaire, tauxTVA, quantiteA, stock, description, datePeremption, Id],
+        (err, result) => {
+            if (err) {
+                console.error("Erreur lors de la modification du produit:", err);
+                res.status(500).send("Erreur interne du serveur");
+            } else {
+                res.status(200).send("Produit modifié avec succès");
             }
         }
     );
@@ -364,10 +378,75 @@ app.post('/addProduct', (req, res) => {
 
 });
 
+/////////supplier
+app.get('/getsuppliers', (req, res) => {
+    db.query('SELECT  Titre, Nom, Prenom, Adresse, NumTel  FROM fournisseur', (err, result) => {
+        if (err) {
+            console.error("Error fetching users:", err);
+            res.status(500).send("Internal server error");
+        } else {
+            res.status(200).json(result);
+        }
+    });
+});
 
+app.post('/modifySupplier', (req, res) => {
+    const {  id,Titre, nom, prenom,  add,numTel } = req.body;
+    db.query('UPDATE fournisseur SET Titre = ?, Nom = ?, Prenom = ?, Adresse = ?, NumTel = ?WHERE IdProd = ?',
+        [ Titre, nom, prenom,  add,numTel ,id],
+        (err, result) => {
+            if (err) {
+                console.error("Erreur lors de la modification du vendeur:", err);
+                res.status(500).send("Erreur interne du serveur");
+            } else {
+                res.status(200).send("Vendeur modifié avec succès");
+            }
+        }
+    );
+});
+app.post('/addsupplier', (req, res) => {
 
+    const { Titre,Nom,Prenom, Adresse,NumTel  } = req.body;
+    db.query("INSERT INTO fournisseur(Titre, Nom, Prenom, Adresse, NumTel) VALUES (?, ?, ?, ?, ?)",
+        [Titre, Nom, Prenom,  Adresse,NumTel ],
+        (err, result) => {
+            if (err) {
+                console.error("Error adding supplier:", err);
+                res.send(err);
+            } else {
+                console.log("supplier added successfully");
+                res.send("Fournisseur ajouté avec succès");
+            }
+        })
+});
+app.get('/checkSupplierExistence/:FournisseurId', (req, res) => {
+    const FournisseurId = req.params.FournisseurId;
+    db.query('SELECT COUNT(*) AS count FROM fournisseur WHERE IdFour = ?', [FournisseurId], (err, result) => {
+        if (err) {
+            console.error("Erreur lors de la vérification de l'existence du fournisseur :", err);
+            res.status(500).json({ error: "Erreur interne du serveur" });
+            return;
+        }
 
+        const count = result[0].count;
+        // Si count est supérieur à 0, l'ID existe
+        res.status(200).json({ exists: count > 0 });
+    });
+});
+app.delete('/deleteFournisseur/:FournisseurId', (req, res) => {
+    const FournisseurId = req.params.FournisseurId;
 
+    // Delete the supplier from the database
+    db.query('DELETE FROM fournisseur WHERE IdFour = ?', [FournisseurId], (err, result) => {
+        if (err) {
+            console.error("Error deleting supplier:", err);
+            res.status(500).send("Internal server error");
+        } else {
+            console.log(`Supplier deleted with ID ${FournisseurId}`);
+            res.sendStatus(204); // Sending 204 response indicating successful deletion
+        }
+    });
+});
 app.get('/getProducts', (req, res) => {
     db.query('SELECT  NomProd, PrixUnitaire, TauxTVA, Stock, QuantiteA , Photo ,Description,DatePeremption FROM produits', (err, result) => {
         if (err) {
