@@ -158,12 +158,12 @@ app.post('/LogIn',(req,res)=>{
 })
 
 app.put('/update-product', (req, res) => {
-    const { IdProd, NomProd, PrixUnitaire, TauxTVA, Stock, QuanteteA,Description,DatePeremption } = req.body;
+    const { IdProd, NomProd, PrixUnitaire, TauxTVA, Stock, QuantiteA,Description,DatePeremption } = req.body;
 
     db.query(
 
-        'UPDATE produits SET NomProd = ?, PrixUnitaire = ?, TauxTVA = ?, Stock = ?, QuanteteA = ? ,Description = ? , DatePeremption = ? WHERE IdProd = ?',
-        [IdProd,NomProd, PrixUnitaire, TauxTVA, Stock, QuanteteA, Description,DatePeremption],
+        'UPDATE produits SET NomProd = ?, PrixUnitaire = ?, TauxTVA = ?, Stock = ?, QuantiteA = ? ,Description = ? , DatePeremption = ? WHERE IdProd = ?',
+        [IdProd,NomProd, PrixUnitaire, TauxTVA, Stock, QuantiteA, Description,DatePeremption],
 
         (err, result) => {
             if (err) {
@@ -391,19 +391,20 @@ app.get('/getsuppliers', (req, res) => {
 });
 
 app.post('/modifySupplier', (req, res) => {
-    const {  id,Titre, nom, prenom,  add,numTel } = req.body;
-    db.query('UPDATE fournisseur SET Titre = ?, Nom = ?, Prenom = ?, Adresse = ?, NumTel = ?WHERE IdProd = ?',
-        [ Titre, nom, prenom,  add,numTel ,id],
+    const { IdFour, Titre, Nom, Prenom, Adresse, NumTel } = req.body;
+    db.query('UPDATE fournisseur SET Titre = ?, Nom = ?, Prenom = ?, Adresse = ?, NumTel = ? WHERE IdFour = ?',
+        [Titre, Nom, Prenom, Adresse, NumTel, IdFour],
         (err, result) => {
             if (err) {
                 console.error("Erreur lors de la modification du vendeur:", err);
                 res.status(500).send("Erreur interne du serveur");
             } else {
-                res.status(200).send("Vendeur modifié avec succès");
+                res.status(200).send("Fournisseur modifié avec succès");
             }
         }
     );
 });
+
 app.post('/addsupplier', (req, res) => {
 
     const { Titre,Nom,Prenom, Adresse,NumTel  } = req.body;
