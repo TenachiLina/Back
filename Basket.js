@@ -61,12 +61,18 @@ app.delete("/delete", (req, res) => {
     });
 });
 
-
+app.get("/totalPrice", (req, res) => {
+    const q = "SELECT SUM(commande.Quantite * produits.PrixUnitaire) AS totalPrice FROM commande JOIN produits ON commande.produits_IdProd = produits.IdProd WHERE commande.Traitee = 1 AND commande.Envoyee = 0";
+    db.query(q, (err, data) => {
+        if (err) return res.json(err);
+        return res.json(data[0]);
+    });
+});
 app.post('/commande', (req, res) => {
     const { produits_IdProd, quantity } = req.body;
 
     db.query(
-        "INSERT INTO commande(produits_IdProd, utilisateur_IdUtilisateur, Quantite, Date, Traitee, Envoyee) VALUES (?, 25, ?, NOW(), false, false)",
+        "INSERT INTO commande(NumCom,produits_IdProd, utilisateur_IdUtilisateur, Quantite, Date, Traitee, Envoyee) VALUES (1+NumCom,?, 25, ?, NOW(), false, false)",
         [produits_IdProd, quantity],
         (err, result) => {
             if (err) {
@@ -96,32 +102,25 @@ app.post('/commande', (req, res) => {
 
 
 
-app.get("/totalPrice", (req, res) => {
-    const q = "SELECT SUM(commande.Quantite * produits.PrixUnitaire) AS totalPrice FROM commande JOIN produits ON commande.produits_IdProd = produits.IdProd WHERE commande.Traitee = 1 AND commande.Envoyee = 0";
-    db.query(q, (err, data) => {
-        if (err) return res.json(err);
-        return res.json(data[0]);
-    });
-});
+
 
 app.post('/confirmOrder', (req, res) => {
-    const { NumCom } = req.body;
-
-    // Update the Envoyee field to 1 and Traitee field to 0 for the corresponding order
     db.query(
-        "UPDATE commande SET Envoyee = 1, Traitee = 0 WHERE NumCom = ?",
-        [NumCom],
+        "UPDATE commande SET NumCom = NumCom + 1, Envoyee = 1, Traitee = 0",
+
         (err, result) => {
             if (err) {
                 console.error("Error updating fields:", err);
-                res.status(500).send("Error confirming order");
+                res.status(500).send("Error confirming orders");
             } else {
-                console.log("Envoyee field updated to 1 and Traitee field updated to 0 successfully");
-                res.status(200).send("Order confirmed successfully");
+                console.log("NumCom field incremented for all orders where NumCom equals the provided value");
+                res.status(200).send("Orders confirmed successfully");
             }
         }
     );
 });
+
+
 app.post('/ViewInvoices', (req, res) => {
     // Select items with Traitee = 0 and Envoyee = 1 and group them by NumCom to calculate the total price for each order
     const selectQuery = `
@@ -138,7 +137,7 @@ app.post('/ViewInvoices', (req, res) => {
             res.status(500).send("Error confirming order");
         } else {
             try {
-                // Start a transaction
+
                 await new Promise((resolve, reject) => {
                     db.beginTransaction(err => {
                         if (err) reject(err);
@@ -146,7 +145,7 @@ app.post('/ViewInvoices', (req, res) => {
                     });
                 });
 
-                // Iterate over each NumCom and totalPrice and insert them into the facture table
+
                 for (const item of data) {
                     const { NumCom, totalPrice } = item;
                     const insertQuery = "INSERT INTO facture(NumCom, PrixTotal) VALUES (?, ?)";
@@ -158,7 +157,7 @@ app.post('/ViewInvoices', (req, res) => {
                     });
                 }
 
-                // Commit the transaction
+
                 await new Promise((resolve, reject) => {
                     db.commit(err => {
                         if (err) {
@@ -172,7 +171,7 @@ app.post('/ViewInvoices', (req, res) => {
 
                 res.status(200).send("Orders confirmed and inserted into facture table successfully");
             } catch (error) {
-                // Rollback the transaction in case of an error
+
                 console.error("Error in transaction:", error);
                 db.rollback(() => {
                     console.error("Transaction rolled back");
