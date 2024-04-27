@@ -514,7 +514,7 @@ app.delete('/deleteFournisseur/:FournisseurId', (req, res) => {
     });
 });
 app.get('/getProducts', (req, res) => {
-    db.query('SELECT  NomProd, PrixUnitaire, TauxTVA, Stock, QuantiteA , Photo ,Description,DatePeremption FROM produits', (err, result) => {
+    db.query('SELECT  NomProd, PrixUnitaire, TauxTVA, Stock, QuantiteA  ,Description,DatePeremption FROM produits', (err, result) => {
         if (err) {
             console.error("Error fetching users:", err);
             res.status(500).send("Internal server error");
