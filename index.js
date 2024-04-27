@@ -73,9 +73,13 @@ app.post('/modifyProduct', (req, res) => {
         [nomProd, prixUnitaire, tauxTVA, quantiteA, stock, description, datePeremption, Id],
         (err, result) => {
             if (err) {
+
                 console.error("Erreur lors de la modification du produit:", err);
                 res.status(500).send("Erreur interne du serveur");
             } else {
+
+                console.log("le nom " +nomProd+"prixUnitaire "+prixUnitaire+"tauxTVA"+tauxTVA+ "quantiteA " +quantiteA+"stock"+stock+"description"+description+"datePeremption"+datePeremption );
+
                 res.status(200).send("Produit modifié avec succès");
             }
         }
@@ -128,9 +132,26 @@ app.put('/updateVendeur/:id', (req, res) => {
     });
 });
 
-
-
-
+app.post('/updateStock', (req, res) => {
+    const { IdProd, newStock } = req.body;
+    if (!IdProd || newStock === undefined) {
+        return res.status(400).send('Product ID and new stock must be provided');
+    }
+    db.query(
+        'UPDATE produits SET Stock = ? WHERE IdProd = ?',
+        [newStock, IdProd],
+        (err, result) => {
+            if (err) {
+                console.error('Error updating stock:', err);
+                return res.status(500).send('Failed to update stock');
+            }
+            if (result.affectedRows === 0) {
+                return res.status(404).send('Product not found');
+            }
+            res.send('Stock updated successfully');
+        }
+    );
+});
 
 app.post('/LogIn',(req,res)=>{
 
@@ -158,14 +179,15 @@ app.post('/LogIn',(req,res)=>{
 })
 
 app.put('/update-product', (req, res) => {
-    const { IdProd, NomProd, PrixUnitaire, TauxTVA, Stock, QuanteteA,Description,DatePeremption } = req.body;
+    const { Id, nomProd, prixUnitaire, tauxTVA, stock, quantiteA,description,datePeremption } = req.body;
 
     db.query(
 
-        'UPDATE produits SET NomProd = ?, PrixUnitaire = ?, TauxTVA = ?, Stock = ?, QuanteteA = ? ,Description = ? , DatePeremption = ? WHERE IdProd = ?',
-        [IdProd,NomProd, PrixUnitaire, TauxTVA, Stock, QuanteteA, Description,DatePeremption],
-
+        'UPDATE produits SET NomProd = ?, PrixUnitaire = ?, TauxTVA = ?, Stock = ?,QuantiteA = ? ,Description = ? , DatePeremption = ? WHERE IdProd = ?',
+        [nomProd, prixUnitaire, tauxTVA, stock, quantiteA, description,datePeremption,Id],
         (err, result) => {
+            console.log(" le modifié " +nomProd);
+
             if (err) {
                 console.error('Error updating product:', err);
                 res.send(err);
@@ -236,7 +258,8 @@ app.get('/ReceptionCommandes', (req, res) => {
         `SELECT DISTINCT c.NumCom, c.Date, u.Nom, u.Prenom, f.PrixTotal
          FROM commande c
                   INNER JOIN utilisateur u ON c.utilisateur_IdUtilisateur = u.IdUtilisateur
-                  INNER JOIN facture f ON c.NumCom = f.NumCom`,
+                  INNER JOIN facture f ON c.NumCom = f.NumCom
+         WHERE c.Traitee = 0`,
         (err, result) => {
             if (err) {
                 console.error('Error fetching commands:', err);
@@ -248,7 +271,50 @@ app.get('/ReceptionCommandes', (req, res) => {
     );
 });
 
+app.post('/validateCommande', (req, res) => {
+    const { commandId } = req.body;
 
+    if (!commandId) {
+        return res.status(400).send('Command ID is required');
+    }
+
+    db.query(
+        `UPDATE commande SET Traitee = 1 WHERE NumCom = ?`,
+        [commandId],
+        (err, result) => {
+            if (err) {
+                console.error('Error updating command:', err);
+                res.status(500).send('Failed to validate command');
+                return;
+            }
+            if (result.affectedRows === 0) {
+                return res.status(404).send('No command found with the given ID');
+            }
+            res.status(200).send('Command validated successfully');
+        }
+    );
+});
+
+
+app.get('/daily-revenue', (req, res) => {
+    const date = req.query.date;
+    db.query(
+        `SELECT DISTINCT c.NumCom, c.Date, u.Nom, u.Prenom, f.PrixTotal
+         FROM commande c
+                  INNER JOIN utilisateur u ON c.utilisateur_IdUtilisateur = u.IdUtilisateur
+                  INNER JOIN facture f ON c.NumCom = f.NumCom
+         WHERE c.Date = ?`,
+        [date],
+        (err, result) => {
+            if (err) {
+                console.error('Error fetching daily commands:', err);
+                res.status(500).json({ error: 'Internal server error' });
+                return;
+            }
+            res.status(200).json(result);
+        }
+    );
+});
 
 
 
@@ -320,14 +386,14 @@ app.get('/monthly-revenue', (req, res) => {
 });
 
 app.get('/getProducts', (req, res) => {
-    db.query('SELECT NomProd, PrixUnitaire, TauxTVA, Stock, QuantiteA FROM pharm.produits', (err, result) => {
+    db.query('SELECT IdProd, NomProd, PrixUnitaire, TauxTVA, Stock, QuantiteA,Description,DatePeremption FROM pharm.produits', (err, result) => {
         if (err) {
             console.error("Error fetching products:", err);
             res.status(500).send("Internal server error");
         } else {
             // Check if the result has at least one row
             if (result.length > 0) {
-                console.log("First product:", result[0]); // Log the first row
+               // console.log("First product:", result[0]); // Log the first row
                 res.status(200).json(result);
             } else {
                 console.log("No products found.");
@@ -392,7 +458,7 @@ app.get('/getsuppliers', (req, res) => {
 
 app.post('/modifySupplier', (req, res) => {
     const {  id,Titre, nom, prenom,  add,numTel } = req.body;
-    db.query('UPDATE fournisseur SET Titre = ?, Nom = ?, Prenom = ?, Adresse = ?, NumTel = ?WHERE IdProd = ?',
+    db.query('UPDATE fournisseur SET Titre = ?, Nom = ?, Prenom = ?, Adresse = ?, NumTel = ? WHERE fournisseur.IdFour = ?',
         [ Titre, nom, prenom,  add,numTel ,id],
         (err, result) => {
             if (err) {
