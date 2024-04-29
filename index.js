@@ -446,7 +446,7 @@ app.post('/addProduct', (req, res) => {
 
 /////////supplier
 app.get('/getsuppliers', (req, res) => {
-    db.query('SELECT  Titre, Nom, Prenom, Adresse, NumTel  FROM fournisseur', (err, result) => {
+    db.query('SELECT IdFour, Titre, Nom, Prenom, Adresse, NumTel  FROM fournisseur', (err, result) => {
         if (err) {
             console.error("Error fetching users:", err);
             res.status(500).send("Internal server error");
@@ -457,9 +457,9 @@ app.get('/getsuppliers', (req, res) => {
 });
 
 app.post('/modifySupplier', (req, res) => {
-    const {  id,Titre, nom, prenom,  add,numTel } = req.body;
+    const {  IdFour,Titre, Nom, Prenom,  Adresse,NumTel } = req.body;
     db.query('UPDATE fournisseur SET Titre = ?, Nom = ?, Prenom = ?, Adresse = ?, NumTel = ? WHERE fournisseur.IdFour = ?',
-        [ Titre, nom, prenom,  add,numTel ,id],
+        [ Titre, Nom, Prenom,  Adresse, NumTel ,IdFour],
         (err, result) => {
             if (err) {
                 console.error("Erreur lors de la modification du vendeur:", err);
