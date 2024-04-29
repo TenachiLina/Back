@@ -76,6 +76,7 @@ app.post('/modifyProduct', (req, res) => {
         const formattedDate = date.toISOString().slice(0, 19).replace('T', ' ');
         return formattedDate;
     };
+    //
 
     // Formater la date de péremption
     const formattedDatePeremption = formatDateForMySQL(datePeremption);
