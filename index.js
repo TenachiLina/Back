@@ -69,22 +69,32 @@ app.post('/modifySeller', (req, res) => {
 });
 app.post('/modifyProduct', (req, res) => {
     const { Id, nomProd, prixUnitaire, tauxTVA, quantiteA, stock, description, datePeremption } = req.body;
-    db.query('UPDATE pharm.produits SET NomProd = ?, PrixUnitaire = ?, TauxTVA = ?, QuantiteA = ?, Stock = ?, Description = ?, DatePeremption = ? WHERE IdProd = ?',
-        [nomProd, prixUnitaire, tauxTVA, quantiteA, stock, description, datePeremption, Id],
+
+    // Fonction pour formater la date au format MySQL
+    const formatDateForMySQL = (dateString) => {
+        const date = new Date(dateString);
+        const formattedDate = date.toISOString().slice(0, 19).replace('T', ' ');
+        return formattedDate;
+    };
+
+    // Formater la date de péremption
+    const formattedDatePeremption = formatDateForMySQL(datePeremption);
+
+    db.query(
+        'UPDATE pharm.produits SET NomProd = ?, PrixUnitaire = ?, TauxTVA = ?, QuantiteA = ?, Stock = ?, Description = ?, DatePeremption = ? WHERE IdProd = ?',
+        [nomProd, prixUnitaire, tauxTVA, quantiteA, stock, description, formattedDatePeremption, Id],
         (err, result) => {
             if (err) {
-
                 console.error("Erreur lors de la modification du produit:", err);
                 res.status(500).send("Erreur interne du serveur");
             } else {
-
-                console.log("le nom " +nomProd+"prixUnitaire "+prixUnitaire+"tauxTVA"+tauxTVA+ "quantiteA " +quantiteA+"stock"+stock+"description"+description+"datePeremption"+datePeremption );
-
+                console.log("Produit modifié avec succès");
                 res.status(200).send("Produit modifié avec succès");
             }
         }
     );
 });
+
 
 app.get('/getUsers', (req, res) => {
     db.query('SELECT IdUtilisateur, Nom, Prenom, Genre, NumTel, Addresse, UserName, Pwd FROM utilisateur WHERE TypeUtilisateur = "Vendeur"', (err, result) => {
@@ -235,9 +245,9 @@ app.delete('/deleteProduct/:id', (req, res) => {
 
 
 
-    // Delete vendor from the database
+// Delete vendor from the database
 //app.delete('/deleteVendor/:id', (req, res) => {
- //   const vendorId = req.params.id;
+//   const vendorId = req.params.id;
 
 /*    // Delete vendor from the database
     db.query('DELETE FROM utilisateur WHERE IdUtilisateur = ?', [id], (err, result) => {
@@ -393,7 +403,7 @@ app.get('/getProducts', (req, res) => {
         } else {
             // Check if the result has at least one row
             if (result.length > 0) {
-               // console.log("First product:", result[0]); // Log the first row
+                // console.log("First product:", result[0]); // Log the first row
                 res.status(200).json(result);
             } else {
                 console.log("No products found.");
@@ -434,7 +444,7 @@ app.post('/addProduct', (req, res) => {
 
     db.query(query, [NomProd, PrixUnitaire, TauxTVA, Stock, QuantiteA ,Description,DatePeremption], (err, result) => {
 
-      if (err) {
+        if (err) {
             console.error(err);
             res.status(500).send('Erreur lors de l\'insertion du produit.');
             return;
@@ -446,7 +456,7 @@ app.post('/addProduct', (req, res) => {
 
 /////////supplier
 app.get('/getsuppliers', (req, res) => {
-    db.query('SELECT  Titre, Nom, Prenom, Adresse, NumTel  FROM fournisseur', (err, result) => {
+    db.query('SELECT IdFour, Titre, Nom, Prenom, Adresse, NumTel  FROM fournisseur', (err, result) => {
         if (err) {
             console.error("Error fetching users:", err);
             res.status(500).send("Internal server error");
@@ -457,9 +467,9 @@ app.get('/getsuppliers', (req, res) => {
 });
 
 app.post('/modifySupplier', (req, res) => {
-    const {  id,Titre, nom, prenom,  add,numTel } = req.body;
+    const {  IdFour,Titre, Nom, Prenom,  Adresse,NumTel } = req.body;
     db.query('UPDATE fournisseur SET Titre = ?, Nom = ?, Prenom = ?, Adresse = ?, NumTel = ? WHERE fournisseur.IdFour = ?',
-        [ Titre, nom, prenom,  add,numTel ,id],
+        [ Titre, Nom, Prenom,  Adresse, NumTel ,IdFour],
         (err, result) => {
             if (err) {
                 console.error("Erreur lors de la modification du vendeur:", err);
