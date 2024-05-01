@@ -144,13 +144,13 @@ app.put('/updateVendeur/:id', (req, res) => {
 });
 
 app.post('/updateStock', (req, res) => {
-    const { IdProd, newStock } = req.body;
+    const { IdProd, newStock , DatePeremption } = req.body;
     if (!IdProd || newStock === undefined) {
         return res.status(400).send('Product ID and new stock must be provided');
     }
     db.query(
-        'UPDATE produits SET Stock = ? WHERE IdProd = ?',
-        [newStock, IdProd],
+        'UPDATE produits SET Stock = ?,DatePeremption = ? WHERE IdProd = ?',
+        [newStock,DatePeremption, IdProd],
         (err, result) => {
             if (err) {
                 console.error('Error updating stock:', err);
@@ -268,9 +268,9 @@ app.get('/ReceptionCommandes', (req, res) => {
     db.query(
         `SELECT DISTINCT c.NumCom, c.Date, u.Nom, u.Prenom, f.PrixTotal
          FROM commande c
-                  INNER JOIN utilisateur u ON c.utilisateur_IdUtilisateur = u.IdUtilisateur
-                  INNER JOIN facture f ON c.NumCom = f.NumCom
-         WHERE c.Traitee = 0`,
+         INNER JOIN utilisateur u ON c.utilisateur_IdUtilisateur = u.IdUtilisateur
+         INNER JOIN facture f ON c.NumCom = f.NumCom
+         WHERE c.Traitee = 0 AND c.Envoyee = 1`,
         (err, result) => {
             if (err) {
                 console.error('Error fetching commands:', err);
@@ -281,6 +281,7 @@ app.get('/ReceptionCommandes', (req, res) => {
         }
     );
 });
+
 
 app.post('/validateCommande', (req, res) => {
     const { commandId } = req.body;
