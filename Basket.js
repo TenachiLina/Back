@@ -72,7 +72,7 @@ app.post('/commande', (req, res) => {
     const { produits_IdProd, quantity } = req.body;
 
     db.query(
-        "INSERT INTO commande(NumCom,produits_IdProd, utilisateur_IdUtilisateur, Quantite, Date, Traitee, Envoyee) VALUES (1+NumCom,?, 25, ?, NOW(), false, false)",
+        "INSERT INTO commande(NumCom,produits_IdProd, utilisateur_IdUtilisateur, Quantite, Date, Traitee, Envoyee) VALUES (0+NumCom,?, 25, ?, NOW(), false, false)",
         [produits_IdProd, quantity],
         (err, result) => {
             if (err) {
@@ -182,9 +182,43 @@ app.post('/ViewInvoices', (req, res) => {
     });
 });
 
+// Route to fetch and print invoices
+app.get("/printInvoices", (req, res) => {
+    const selectQuery = "SELECT * FROM facture";
+
+    db.query(selectQuery, (err, data) => {
+        if (err) {
+            console.error("Error fetching invoices:", err);
+            return res.status(500).json({ error: 'An error occurred while fetching invoices.' });
+        }
+        return res.json(data);
+    });
+});
 
 
-// Start the server
+app.delete("/deleteAllItems", (req, res) => {
+    const q = "DELETE FROM facture";
+    db.query(q, (err, result) => {
+        if (err) {
+            console.error('Error deleting items from commande table:', err);
+            return res.status(500).json({ error: 'An error occurred while deleting items from commande table.' });
+        }
+        console.log('Items deleted from commande table successfully');
+
+
+        const deleteFactureQuery = "DELETE FROM commande";
+        db.query(deleteFactureQuery, (err, result) => {
+            if (err) {
+                console.error('Error deleting invoices from facture table:', err);
+                return res.status(500).json({ error: 'An error occurred while deleting invoices from facture table.' });
+            }
+            console.log('Invoices deleted from facture table successfully');
+            return res.status(200).json({ message: 'Items and invoices deleted successfully' });
+        });
+    });
+});
+
+
 app.listen(3004, () => {
     console.log("Server running on port 3004");
 });
