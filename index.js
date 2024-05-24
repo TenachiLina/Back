@@ -9,7 +9,7 @@ app.use(cors());
 const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
-    password: 'amanilakehal20056',
+    password: '',
     database: 'pharm',
 
 })
@@ -266,11 +266,12 @@ app.delete('/deleteProduct/:id', (req, res) => {
 
 app.get('/ReceptionCommandes', (req, res) => {
     db.query(
-        `SELECT DISTINCT c.NumCom, c.Date, u.Nom, u.Prenom, f.PrixTotal
+        `SELECT c.NumCom, c.Date, u.Nom, u.Prenom, SUM(f.PrixTotal) AS PrixTotal
          FROM commande c
          INNER JOIN utilisateur u ON c.utilisateur_IdUtilisateur = u.IdUtilisateur
          INNER JOIN facture f ON c.NumCom = f.NumCom
-         WHERE c.Traitee = 0 AND c.Envoyee = 1`,
+         WHERE c.Traitee = 0 AND c.Envoyee = 1
+         GROUP BY c.NumCom`,
         (err, result) => {
             if (err) {
                 console.error('Error fetching commands:', err);
@@ -281,6 +282,8 @@ app.get('/ReceptionCommandes', (req, res) => {
         }
     );
 });
+
+
 
 
 app.post('/validateCommande', (req, res) => {
@@ -306,6 +309,38 @@ app.post('/validateCommande', (req, res) => {
         }
     );
 });
+
+
+app.get('/expired-products', (req, res) => {
+    console.log("Fetching expired products - Current Date:", new Date());
+
+    const query = `
+        SELECT * FROM produits 
+        WHERE DatePeremption < CURDATE()
+    `;
+
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error fetching expired products:', err);
+            return res.status(500).send('Error fetching expired products');
+        }
+
+        console.log('Expired products found:', results);
+        res.status(200).json(results);
+    });
+});
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 app.get('/daily-revenue', (req, res) => {

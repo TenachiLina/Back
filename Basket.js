@@ -90,8 +90,27 @@ app.post('/commande', (req, res) => {
                             console.error("Error updating Traitee field:", err);
                             res.status(500).send("Error updating Traitee field");
                         } else {
-                            console.log("Traitee field updated successfully");
-                            res.status(200).send("Data inserted and Traitee field updated successfully");
+                          //  console.log("Traitee field updated successfully");
+                          //  res.status(200).send("Data inserted and Traitee field updated successfully");
+
+                            db.query(
+                                "UPDATE produits SET stock = stock - ? WHERE IdProd = ?",
+                                [quantity, produits_IdProd],
+                                (err, updateResult) => {
+                                    if (err) {
+                                        console.error("Error updating Traitee field:", err);
+                                        res.status(500).send("Error updating Traitee field");
+                                    } else {
+                                        console.log("Produit stock field updated successfully");
+                                        res.status(200).send("Data inserted and Traitee field updated successfully");
+                                    }
+                                }
+                            );
+
+
+
+
+
                         }
                     }
                 );
